@@ -1,16 +1,54 @@
-# This is a sample Python script.
+from pygame import *
+from random import randint
+init()
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+window_size = 1280, 720
+window = display.set_mode(window_size)
+clock = time.Clock()
+player_rect = Rect(150, window_size[1]//2, 100, 100)
 
+lose = False
+score = 0
+main_font = font.Font(None, 100)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def generate_pipes(count, pipe_width=140, gap=280, min_height=50, max_height=500, distance=650):
+    pipes = []
+    start_x = window_size[0]
+    for i in range(count):
+        height = randint(min_height, max_height)
+        top_pipe = Rect(start_x, 0, pipe_width, height)
+        bottom_pipe = Rect(start_x, height+gap, pipe_width, window_size[1]-(height+gap))
+        pipes.extend([top_pipe, bottom_pipe])
+        start_x += distance
+    return pipes
 
+pipes = generate_pipes(150)
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+while True:
+    for e in event.get():
+        if e.type == QUIT:
+            quit()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    window.fill("sky blue")
+    draw.rect(window, "yellow", player_rect)
+    for pipe in pipes[:]:
+        if not lose:
+            pipe.x -= 10
+        draw.rect(window, "green", pipe)
+        if pipe.x <= -100:
+            pipes.remove(pipe)
+            score += 0.5
+        if player_rect.colliderect(pipe):
+            lose = True
+
+    score_text = main_font.render(f"{int(score)}", 1, "white")
+    window.blit(score_text,(40,40))
+
+    display.update()
+    clock.tick(60)
+
+    keys = key.get_pressed()
+    if keys[K_w] and not lose:
+        player_rect.y -= 15
+    if keys[K_s] and not lose:
+        player_rect.y += 15
